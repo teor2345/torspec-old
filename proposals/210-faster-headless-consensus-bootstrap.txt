@@ -187,8 +187,9 @@ Reliability Analysis
  97%    of clients succeed in the first 2 seconds.
  99.4%  of clients succeed without trying a second authority.
  99.89% of clients succeed in the first 10 seconds.
-  0.11% of clients remain, but in this scenario, 2 authorities are down,
-        so the client is most likely blocked from the Tor network.
+  0.11% of clients remain, but in this scenario, 2 authorities are
+        unreachable, so the client is most likely blocked from the Tor
+        network.
 
  The current implementation makes 1 or 2 authority connections within the
  first second, depending on exactly how the first connection fails. Under
