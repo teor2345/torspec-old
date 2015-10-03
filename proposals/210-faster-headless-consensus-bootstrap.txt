@@ -27,13 +27,15 @@ Design: Bootstrap Process Changes
  and authority connections are tried. Mirror connections are tried at
  a faster rate than authority connections.
 
- We specify that mirror connections retry after half a second, and then
+ We specify that mirror connections retry after one second, and then
  double the retry time with every connection:
  0, 1, 2, 4, 8, 16, 32, ...
 
  We specify that directory authority connections retry after 5 seconds,
  and then double the retry time with every connection:
  0, 10, 20, ...
+
+ [ XXX: should we add random noise to these scheduled times? - teor ]
 
  The maximum retry time for both timers is 3 days + 1 hour. This places a
  small load on the mirrors and authorities, while allowing a client that
