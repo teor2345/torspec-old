@@ -35,6 +35,10 @@ Design: Bootstrap Process Changes
  and then double the retry time with every connection:
  0, 10, 20, ...
 
+ The maximum retry time for both timers is 3 days + 1 hour. This places a
+ small load on the mirrors and authorities, while allowing a client that
+ regains a network connection to eventually download a consensus.
+
  If the client has both an IPv4 and IPv6 address, we try IPv4 and IPv6
  mirrors and authorities on the following schedule:
  IPv4, IPv6, IPv4, IPv6, ...
@@ -44,14 +48,19 @@ Design: Bootstrap Process Changes
  ensures that we try an IPv6 authority within the first 10 seconds.
  This helps implement #8374 and related tickets.
 
- The maximum retry time for both timers is 3 days + 1 hour. This places a
- small load on the mirrors and authorities, while allowing a client that
- regains a network connection to eventually download a consensus.
+ We don't want to keep on trying an IP version that always fails.
+ Therefore, once sufficient IPv4 and IPv6 connections have been
+ attempted, we select an IP version for new connections based on the ratio
+ of their failure rates, up to a maximum of 1:5. This may not make a
+ substantial difference to consensus downloads, as we only need one
+ successful consensus download to bootstrap. However, it is important for
+ future features like #17217, where clients try to automatically determine
+ if they can use IPv4 or IPv6 to contact the Tor network.
 
- The retry timers must reset on HUP and any network reachability events,
+ The retry timers and IP version schedules must reset on HUP and any
+ network reachability events, so that clients that have unreliable networks
+ can recover from network failures.
  [ TODO: do we have network reachability events? ]
- so that clients that have unreliable networks can recover from network
- failures.
 
  The first connection to complete will be used to download the consensus
  document and the others will be closed, after which bootstrapping will
