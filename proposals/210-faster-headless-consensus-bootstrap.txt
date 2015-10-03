@@ -166,7 +166,7 @@ Implementation Notes: Code Modifications
 
  The code in directory_initiate_command_rend() or
  connection_dir_finished_connecting() would need to be altered to check that
- we are not already downloading the consensus, and if not, then call
+ we are not already downloading the consensus. If we’re not, then call
  directory_send_command() to download the consensus, and close any other
  pending consensus dircons. (We may still want to check our clock against an
  authority by allowing a TLS connection to complete, then immediately closing
