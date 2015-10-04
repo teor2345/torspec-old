@@ -154,7 +154,7 @@ Implementation Notes: Code Modifications
  if the purpose is DIR_PURPOSE_FETCH_CONSENSUS and there is no valid
  (reasonably live) consensus. We can make multiple connections from
  update_consensus_networkstatus_downloads(), as the sockets are non-blocking.
- [ XXX - is this true for all platforms? ]
+ [ XXX - is this socket actually non-blocking for all platforms? ]
  As long as we can tolerate a timer resolution of ~1 second (due to the use
  of time_t), this requires no additional timers or callbacks. We can make 1
  connection for each schedule per second, for a total of 2 per second, or 4
