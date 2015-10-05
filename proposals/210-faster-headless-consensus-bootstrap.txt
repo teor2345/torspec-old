@@ -99,7 +99,7 @@ Design: Bootstrap Process Changes
  10 seconds. This is a much better success rate than the current Tor
  implementation, which fails k/n of clients if k of the n directory
  authorities are down. (Or, if the connection fails in certain ways,
- (k/n)^2.)
+ it will retry once, failing 1-(1-(k/n)^2).)
 
  If at any time, the total outstanding bootstrap connection attempts
  exceeds 10, no new connection attempts are to be launched until an
@@ -139,7 +139,7 @@ Performance: Additional Load with Current Parameter Choices
  may need to serve the consensus document HEAD for clock checks.)
 
  However, the scheme does place additional TLS connection load on the
- fallback dir mirrors. Because bootstrapping is rare and all but one of 
+ fallback dir mirrors. Because bootstrapping is rare, and all but one of
  the TLS connections will be very short-lived and unused, this should not
  be a substantial issue.
 
