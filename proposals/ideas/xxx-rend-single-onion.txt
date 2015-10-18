@@ -1,14 +1,12 @@
 Filename: xxx-rend-single-onion.txt
 Title: Rendezvous Single Onion Services
 Author: Tim Wilson-Brown, Aaron Johnson, Paul Syverson, Rob Jansen
-        (Based on Single Onion Services (Proposal #252) by John Brooks,
-        Paul Syverson, Roger Dingledine)
 Created: 2015-10-17
 Status: Draft
 
 1. Overview
 
-   Rendezvous single onion services are an altenrative design for single onion
+   Rendezvous single onion services are an alternative design for single onion
    services, which trade service-side location privacy for improved
    performance, reliability, and scalability.
 
@@ -21,6 +19,12 @@ Status: Draft
 
 2. Motivation
 
+   Rendezvous single onion services are best used by sites which:
+      * Don’t require location anonymity
+      * Would appreciate lower latency or self-authenticated addresses
+      * Would like to work with existing tor clients and relays
+      * Can’t accept connections to an open ORPort
+
    Rendezvous single onion services have a few benefits over double onion
    services:
 
@@ -29,6 +33,9 @@ Status: Draft
       * Stream latency is reduced on a 4-hop circuit
       * A rendezvous single onion service can use multiple relays for load
         balancing
+      * As a side-effect, busy onion services with this feature cause less
+        damage to the rest of the network, since their traffic gets passed
+        around less.
 
    Rendezvous single onion services have a few benefits over single onion
    services:
@@ -47,6 +54,12 @@ Status: Draft
 
       * Connection latency is somewhat higher due to one-hop rendezvous,
         rather than one-hop direct connection
+
+   It should also be noted that, while single onion services receive many
+   incoming connections from different relays, rendezvous single onion
+   services make many outgoing connections to different relays. This should
+   be taken into account when planning the connection capacity of the
+   infrastructure supporting the onion service.
 
    Rendezvous single onion services are not location hidden on the service
    side, but clients retain all of the benefits and privacy of onion
@@ -97,7 +110,13 @@ Status: Draft
         If set, make one-hop circuits between the Rendezvous Single Onion
         Service server, and the introduction and rendezvous points. This
         option makes every onion service instance hosted by this tor instance
-        a Rendezvous Single Onion Service.
+        a Rendezvous Single Onion Service. (Default: 0)
+
+   Because of the grave consequences of misconfiguration here, we have added
+   ‘NonAnonymous’ to the name of the torrc option. Furthermore, Tor MUST issue
+   a startup warning message to operators of the onion service if this feature
+   is enabled.
+   [Should the name start with ‘NonAnonymous’ instead?]
 
    Based on the experiences of Tor2Web with one-hop paths, operators should
    consider using the following options with every rendezvous single onion
@@ -105,7 +124,10 @@ Status: Draft
      
       UseEntryGuards 0
         One-hop paths do not use entry guards. This also deactivates the entry
-        guard pathbias code, which is not compatible with one-hop paths.
+        guard pathbias code, which is not compatible with one-hop paths. Entry
+        guards are a security measure against Sybil attacks. Unfortunately,
+        they also act as the bottleneck of busy onion services and overload
+        those Tor relays.
 
       LearnCircuitBuildTimeout 0
         Learning circuit build timeouts is incompatible with one-hop paths.
@@ -155,10 +177,12 @@ Status: Draft
 
 6.2. Benefits of also running a Tor relay
 
-   If a rendezvous single onion service also acts as a published tor relay,
-   it will keep connections to many other tor relays. This can significantly
-   reduce the latency of connections to the single onion service, and also
-   helps the tor network.
+   In tor Trac ticket #8742, running a relay and hidden onion service on the
+   same tor instance was disabled for security reasons. While there may be
+   benefits to running a relay on the same instance as a rendezvous single
+   onion service (existing connections mean lower latency, it helps the tor
+   network overall), a security analysis of this configuration has not yet been
+   performed.
 
 6.3. Proposal 224 ("Next-Generation Hidden Services")
 
@@ -192,6 +216,11 @@ Status: Draft
    service. Controllers can then choose to handoff the rendezvous point
    connection to another tor instance, which should also be configured
    as a rendezvous single onion service.
+
+6.6 Predicted circuits
+
+   We should look whether we can optimize further the predicted circuits that
+   Tor makes as a onion service for this mode.
 
 7. Discussion
 
@@ -268,3 +297,27 @@ Status: Draft
    Therefore, this mitigation would effectively cover rendezvous single onion
    services, as long as a dummy descriptor download was also performed
    occasionally.
+
+8.3 Hidden Service Designs can potentially be more secure
+
+   As a side-effect, by optimizing for performance in this feature, it
+   allows us to lean more heavily towards security decisions for
+   regular onion services.
+
+8.4 One-hop onion service paths may encourage more attacks
+
+   There's a possible second-order effect here since both encrypted
+   services and hidden services will have foo.onion addresses and it's
+   not clear based on the address whether the service will be hidden --
+   if *some* .onion addresses are easy to track down, are we encouraging
+   adversaries to attack all rendezvous points just in case?
+
+9. Previous Work
+
+   This proposal is based on Single Onion Services (Proposal #252) by John
+   Brooks, Paul Syverson, and Roger Dingledine.
+
+   This proposal is substantially similar to Direct Onion Services:
+   Fast-but-not-hidden services by Roger Dingledine, and George Kadianakis at
+   https://lists.torproject.org/pipermail/tor-dev/2015-April/008625.html
+
