@@ -239,3 +239,32 @@ Status: Draft
    the unique behaviour of each type of onion service may still be
    distinguishable from both the client and server ends of the connection.
 
+8.2 Making Client Exit connections look like Client Onion Service Connections
+
+   A mitigation to this fingerprinting is to make each (or some) exit
+   connections look like onion service connections. This provides cover for
+   particular types of onion service connections. Unfortunately, it is not
+   possible to make onion service connections look like exit connections,
+   as there are no suitable dummy servers to exit to on the internet.
+
+8.2.1 Making Client Exit connections perform Descriptor Downloads
+
+   (Some) exit connections could perform a dummy descriptor download.
+   (However, descriptors for recently accessed onion services are cached, so
+   dummy downloads should only be performed occasionally.)
+
+   Exit connections already involve a four-hop "circuit" to the server
+   (including the connection between the exit and the server on the internet).
+   The server on the internet is not included in the consensus. Therefore,
+   this mitigation would effectively cover single onion services which are not
+   relays.
+
+8.2.2 Making Client Exit connections perform the Rendezvous Protocol
+
+   (Some) exit connections could perform a dummy rendezvous protocol.
+
+   Exit connections already involve a four-hop "circuit" to the server
+   (including the connection between the exit and the server on the internet).
+   Therefore, this mitigation would effectively cover rendezvous single onion
+   services, as long as a dummy descriptor download was also performed
+   occasionally.
