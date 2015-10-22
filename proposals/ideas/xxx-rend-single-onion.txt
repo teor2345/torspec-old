@@ -386,19 +386,64 @@ splitting described in section 8. Here are some initial ideas.
 
    Currently, Exits perform DNS name resolution, and changing this behaviour
    would cause unacceptable connection latency. Therefore, we could make
-   onion service connections look like exit connections by making the rendezvous
-   point do name resolution (that is, descriptor fetching), and, if needed,
-   the introduction part of the protocol. This could potentially *reduce* the
-   latency of single onion service connections, depending on the length of the
-   paths used by the rendezvous point.
+   onion service connections look like exit connections by making the
+   rendezvous point do name resolution (that is, descriptor fetching), and, if
+   needed, the introduction part of the protocol. This could potentially
+   *reduce* the latency of single onion service connections, depending on the
+   length of the paths used by the rendezvous point.
 
    However, this change makes rendezvous points almost as powerful as Exits,
    a careful security analysis will need to be performed before this is
    implemented.
 
-   There is also a design issue with rendezvous name resolution: a client wants
-   to leave resolution (descriptor download) to the RP, but it doesn't know whether
-   it can use the exit-like protocol with an RP until it has downloaded the
-   descriptor. This might mean that single onion services of both flavours need a
-   different address style or address namespace. We could use .single.onion or
-   something. (This would require an update to the HSDir code.)
+   There is also a design issue with rendezvous name resolution: a client
+   wants to leave resolution (descriptor download) to the RP, but it doesn't
+   know whether it can use the exit-like protocol with an RP until it has
+   downloaded the descriptor. This might mean that single onion services of
+   both flavours need a different address style or address namespace. We could
+   use .single.onion or something. (This would require an update to the HSDir
+   code.)
+
+9.2 Performing automated and common queries over onion services
+
+   Tor could create cover traffic for a flavour of onion service by performing
+   automated or common queries via an onion service of that type. In addition,
+   onion service-based checks have security benefits over DNS-based checks.
+   See Genuine Onion, Syverson and Boyce, 2015, at
+   http://www.nrl.navy.mil/itd/chacs/syverson-genuine-onion-simple-fast-flexible-and-cheap-website-authentication
+
+   Here are some examples of automated queries that could be performed over
+   an onion service:
+
+9.2.1 torcheck over onion service
+
+   torcheck ("Congratulations! This browser is configured to use Tor.") could
+   be retrieved from an onion service.
+
+   Incidentally, this would resolve the exitmap issues in #17297, but it
+   would also fail to check that exit connections work, which is important for
+   many Tor Browser users.
+
+9.2.2 Tor Browser version checks over onion service
+
+   Running tor browser version checks over an onion service seems to be an
+   excellent use-case for onion services. It would also have the Tor Project
+   "eating its own dogfood", that is, using onion services for its essential
+   services.
+
+9.2.3 Tor Browser downloads over onion service
+
+   Running tor browser downloads over an onion service might require some work
+   on the onion service codebase to support high loads, load-balancing, and
+   failover. It is a good use case for a (rendezvous) single onion service,
+   as the traffic over the tor network is only slightly higher than for
+   Tor Browser downloads over tor. (4 hops for [R]SOS, 3 hops for Exit.)
+
+9.2.4 SSL Observatory submissions over onion service
+
+   HTTPS certificates could be submitted to HTTPS Everywhere's SSL Observatory
+   over an onion service.
+
+   This option is disabled in Tor Browser by default. Perhaps some users would
+   be more comfortable enabling submission over an onion service, due to the
+   additional security benefits.
