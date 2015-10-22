@@ -17,12 +17,14 @@ Status: Draft
    modification: one-hop connections are made from the onion server to the
    introduction and rendezvous points.
 
-   This proposal is a revision of the unnumbered proposal Direct Onion Services:
-   Fast-but-not-hidden services by Roger Dingledine, and George Kadianakis at
+   This proposal is a revision of the unnumbered proposal Direct Onion
+   Services: Fast-but-not-hidden services by Roger Dingledine, and George
+   Kadianakis at
    https://lists.torproject.org/pipermail/tor-dev/2015-April/008625.html
-   It incorporates much of the discussion around hidden services since April 2015,
-   including content from Single Onion Services (Proposal #252) by John Brooks,
-   Paul Syverson, and Roger Dingledine.
+
+   It incorporates much of the discussion around hidden services since April
+   2015, including content from Single Onion Services (Proposal #252) by John
+   Brooks, Paul Syverson, and Roger Dingledine.
 
 2. Motivation
 
@@ -116,7 +118,6 @@ Status: Draft
 
 5.1. Configuration options
 
-
 5.1.1 RendezvousSingleOnionServiceNonAnonymousServer
 
    The tor instance operating a rendezvous single onion service must make
@@ -194,8 +195,8 @@ Status: Draft
 5.1.3 Recommended Additional Options: Security
 
    We recommend that no other services are run on a rendezvous single onion
-   service tor instance. Since tor runs as a client (and not a relay) by default,
-   rendezvous single onion service operators should set:
+   service tor instance. Since tor runs as a client (and not a relay) by
+   default, rendezvous single onion service operators should set:
 
       SocksPort 0
         Disallow connections from client applications to the tor network
@@ -289,10 +290,10 @@ Status: Draft
    Tor clients typically expire connections much faster than tor relays
    [citation needed].
 
-   (Rendezvous) single onion service operators may find that keeping connections
-   open saves on connection latency. However, it may also place an additional
-   load on the service. (This could be configured by increasing the default
-   connection expiry time.)
+   (Rendezvous) single onion service operators may find that keeping
+   connections open saves on connection latency. However, it may also place an
+   additional load on the service. (This could be implemented by increasing the
+   configured connection expiry time.)
 
 7.3. (No) Benefit to also running a Tor relay
 
@@ -300,9 +301,9 @@ Status: Draft
    same tor instance was disabled for security reasons. While there may be
    benefits to running a relay on the same instance as a rendezvous single
    onion service (existing connections mean lower latency, it helps the tor
-   network overall), a security analysis of this configuration has not yet been
-   performed. In addition, a potential drawback is overloading a busy single
-   onion service.
+   network overall), a security analysis of this configuration has not yet
+   been performed. In addition, a potential drawback is overloading a busy
+   single onion service.
 
 6.4 Predicted circuits
 
@@ -323,13 +324,13 @@ Status: Draft
    NAT-punching, or other benefits.
 
    For this reason, features that shrink the double onion service anonymity
-   set should be carefully considered. The benefits and drawbacks of additional
-   features also often depend on a particular threat model.
+   set should be carefully considered. The benefits and drawbacks of
+   additional features also often depend on a particular threat model.
 
    It may be that a significant number of users and sites adopt (rendezvous)
    single onion services due to their benefits. This could increase the
-   traffic on the tor network, therefore increasing anonymity overall. However,
-   the unique behaviour of each type of onion service may still be
+   traffic on the tor network, therefore increasing anonymity overall.
+   However, the unique behaviour of each type of onion service may still be
    distinguishable from both the client and server ends of the connection.
 
 8.2 Hidden Service Designs can potentially be more secure
