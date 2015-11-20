@@ -902,7 +902,7 @@ Status: Draft
        period-start is when the current period started.
 
        Then, each initialisation and increment is:
-         revision-counter += random(0, max-increment)
+         revision-counter += random(1, max-increment)
 
        (The random() function should be careful not to leak the raw bytes
        returned by the PRNG to the network. See [RANDOM-REFS].)
