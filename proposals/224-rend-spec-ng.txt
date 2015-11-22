@@ -955,9 +955,15 @@ Status: Draft
 
        [ XX/teor - is the extra load on the HSDirs worth it? ]
 
+       hashed_salt = H(salt), truncated to 16 bytes
+
+      (We hash salt so that we don't leak the raw bytes returned by a PRNG
+      to the network. Since we're using random input data, a
+      distinguishing value is unnecessary. See [RANDOM-REFS].)
+
        secret_input = blinded_public_key(replica-keynum) |
              subcredential | INT_4(revision_counter)
-       keys = KDF(secret_input, salt, "hsdir-encrypted-data",
+       keys = KDF(secret_input, hashed_salt, "hsdir-encrypted-data",
                   S_KEY_LEN + S_IV_LEN + MAC_KEY_LEN)
 
        SECRET_KEY = first S_KEY_LEN bytes of keys
@@ -966,12 +972,9 @@ Status: Draft
 
    The encrypted data has the format:
 
-       H(SALT)    H(random bytes from above)      [16 bytes]
+       HASHEDSALT hashed_salt                     [16 bytes]
        ENCRYPTED  The plaintext encrypted with S  [variable]
        MAC        MAC of both above fields        [32 bytes]
-
-   (We hash salt so that we don't leak the raw bytes returned by a PRNG
-   to the network. See [RANDOM-REFS].)
 
    The encryption format is ENCRYPTED =
                STREAM(SECRET_IV,SECRET_KEY) xor Plaintext
