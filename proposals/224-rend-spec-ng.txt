@@ -1587,11 +1587,21 @@ Status: Draft
         Pubkey    [32 bytes]
         Signature [64 bytes]
 
-   Nonce is a random value. (Noncen should be derived from hashed PRNG
-   output, so that we don't leak the raw bytes returned by a PRNG to the
-   network. See [RANDOM-REFS].) Pubkey is the public key that will be used
-   to authenticate. [TODO: should this be an identifier for the public
-   key instead?]  Signature is the signature, using Ed25519, of:
+   Nonce is a random value, calculated as follows:
+
+       RandomValue = 16 random bytes
+
+       Nonce = H(RandomValue), truncated to 16 bytes
+
+       (We hash RandomValue so that we don't leak the raw bytes returned by
+       a PRNG to the network. Since we're using random input data, a
+       distinguishing value is unnecessary. See [RANDOM-REFS].)
+
+   Pubkey is the public key that will be used to authenticate.
+   [TODO: should this be an identifier for the public
+   key instead?]
+
+   Signature is the signature, using Ed25519, of:
 
         "Hidserv-userauth-ed25519"
         Nonce       (same as above)
