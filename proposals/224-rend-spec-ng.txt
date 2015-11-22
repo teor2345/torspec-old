@@ -902,10 +902,12 @@ Status: Draft
        period-start is when the current period started.
 
        Then, each initialisation and increment is:
-         revision-counter += random(1, max-increment)
+         revision-counter += crypto_rand_int_range(1, max-increment)
 
-       (The random() function should be careful not to leak the raw bytes
-       returned by the PRNG to the network. See [RANDOM-REFS].)
+       (revision-counter should be based on the hashed output of a PRNG,
+       otherwise, it could leak the raw bytes returned by that PRNG to the
+       network. Since we're using random input data, a distinguishing
+       value is unnecessary. See [RANDOM-REFS].)
 
        This scheme increments revision-counter at a maximum rate of:
          2 ^ 32 / (2 * 24 * 60 * 60) = 24855 per second
@@ -1749,6 +1751,7 @@ References:
 [RANDOM-REFS]:
         http://projectbullrun.org/dual-ec/ext-rand.html
         https://lists.torproject.org/pipermail/tor-dev/2015-November/009954.html
+        https://lists.torproject.org/pipermail/tor-dev/2015-November/009979.html
 
 Appendix A. Signature scheme with key blinding [KEYBLIND]
 
