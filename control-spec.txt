@@ -1456,8 +1456,11 @@
                      private key as part of the response.
      "Detach"    / ; Do not associate the newly created Onion Service
                      to the current control connection.
-     "BasicAuth"   ; Client authorization is required using the "basic"
+     "BasicAuth" / ; Client authorization is required using the "basic"
                      method.
+     "NonAnonymous"; Add a non-anonymous Single Onion Service. Tor
+                     checks this flag matches its current onion service
+                     anonymity configuration.
 
     VirtPort = The virtual TCP Port for the Onion Service (As in the
                HiddenServicePort "VIRTPORT" argument).
@@ -1499,6 +1502,12 @@
   "ClientBlob" is not specified for a client, a new credential will be
   randomly generated and returned.
 
+  If a non-anonymous Single Onion Service is requested using the
+  "NonAnonymous" flag, Tor will only add a non-anonymous onion service:
+  OnionServiceSingleHopMode and OnionServiceNonAnonymousMode must both be
+  1. If this flag is absent, Tor will only add an anonymous onion service:
+  both these options must be 0 (the Tor default).
+
   Once created the new Onion Service will remain active until either the
   Onion Service is removed via "DEL_ONION", the server terminates, or the
   control connection that originated the "ADD_ONION" command is closed.
@@ -1533,8 +1542,27 @@
      S: 250-ClientAuth=bob:[Blob Redacted]
      S: 250 OK
 
+  Examples with Tor in anonymous onion service mode:
+
+     C: ADD_ONION NEW:BEST Flags=DiscardPK Port=22
+     S: 250-ServiceID=testonion1234567
+     S: 250 OK
+
+     C: ADD_ONION NEW:BEST Flags=DiscardPK,NonAnonymous Port=22
+     S: 512 Tor is in anonymous onion mode
+
+  Examples with Tor in non-anonymous onion service mode:
+
+     C: ADD_ONION NEW:BEST Flags=DiscardPK Port=22
+     S: 512 Tor is in non-anonymous onion mode
+
+     C: ADD_ONION NEW:BEST Flags=DiscardPK,NonAnonymous Port=22
+     S: 250-ServiceID=testonion1234567
+     S: 250 OK
+
   [ADD_ONION was added in Tor 0.2.7.1-alpha.]
   [ClientAuth was added in Tor 0.2.9.1-alpha.]
+  [NonAnonymous was added in Tor 0.2.9.3-alpha.]
 
 3.28. DEL_ONION
 
