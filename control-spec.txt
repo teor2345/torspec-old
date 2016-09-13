@@ -1549,12 +1549,12 @@
      S: 250 OK
 
      C: ADD_ONION NEW:BEST Flags=DiscardPK,NonAnonymous Port=22
-     S: 512 Tor is in anonymous onion mode
+     S: 512 Tor is in anonymous hidden service mode
 
   Examples with Tor in non-anonymous onion service mode:
 
      C: ADD_ONION NEW:BEST Flags=DiscardPK Port=22
-     S: 512 Tor is in non-anonymous onion mode
+     S: 512 Tor is in non-anonymous hidden service mode
 
      C: ADD_ONION NEW:BEST Flags=DiscardPK,NonAnonymous Port=22
      S: 250-ServiceID=testonion1234567
