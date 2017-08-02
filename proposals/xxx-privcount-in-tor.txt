@@ -2,18 +2,19 @@
 
 Acknowledgments
 
-  Tariq Elahi, George Danezis, and Ian Goldberg designed the blinding
-  scheme, Rob Jansen and Aaron Johnson extended the differential privacy
-  guarantees to multiple counters:
+  Tariq Elahi, George Danezis, and Ian Goldberg designed and implemented
+  the PrivEx blinding scheme. Rob Jansen and Aaron Johnson extended
+  PrivEx's differential privacy guarantees to multiple counters in
+  PrivCount:
 
   https://github.com/privcount/privcount/blob/master/README.markdown#research-background
 
   Rob Jansen and Tim Wilson-Brown wrote the majority of the experimental
-  code, with contributions from the other authors mentioned above:
+  PrivCount code, based on the PrivEx secret-sharing variant. This
+  implementation includes contributions from the PrivEx authors, and
+  others:
 
   https://github.com/privcount/privcount/blob/master/CONTRIBUTORS.markdown
-
-  Tim also wrote the above acknowledgments section.
 
 Introduction and scope
 
@@ -22,7 +23,9 @@ Introduction and scope
   Tor relay.
 
   This document describes the behavior of the in-Tor portion of the
-  PrivCount system.  It does not describe the rest of the system.
+  PrivCount system.  It does not describe the counter configurations,
+  or any other parts of the system. (These will be covered in separate
+  proposals.)
 
 PrivCount overview
 
@@ -34,9 +37,13 @@ PrivCount overview
   and subtraction are modulo 2^64.
 
   In PrivCount, a Data Collector (in this case a Tor relay) shares
-  share numeric data with N different Tally Reporters, such that all
-  N together can reconstruct the original data, but no (N-1)-sized
-  subset of the Tally Reporters can learn anything about the data.
+  numeric data with N different Tally Reporters. (A Tally Reporter
+  performs the summing and unblinding roles of the Tally Server and Share
+  Keeper from experimental PrivCount.)
+
+  All N Tally Reporters together can reconstruct the original data, but
+  no (N-1)-sized subset of the Tally Reporters can learn anything about
+  the data.
 
   (In reality, the Tally Reporters don't reconstruct the original data
   at all! Instead, they will reconstruct a _sum_ of the original data
