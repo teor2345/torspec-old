@@ -53,7 +53,9 @@ PrivCount overview
   random values B_1 though B_n, and shares each B_i secretly with a
   single Tally Reporter.  The relay then publishes Y = X + SUM(B_i) + Z,
   where Z is a noise value taken at random from a gaussian distribution.
-  The Tally Reporters can reconstruct X+Z in the obvious way.
+  The Tally Reporters can reconstruct X+Z by exchanging SUM(B_i) across
+  all contributing Data Collectors. (Tally Reporters MUST NOT share
+  individual B_i values: that would expose the underlying relay totals.)
 
   In order to prevent bogus data from corrupting the tally, the Tor
   relays and the Tally Reporters perform multiple "instances" of this
