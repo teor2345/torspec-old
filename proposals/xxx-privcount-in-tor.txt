@@ -63,6 +63,10 @@ PrivCount overview
   Y values for each measurement, built with different sets of B_i.
   These "instances" are numbered in order from 1 to R.
 
+  So that the system will still produce results in the event of a single
+  Tally Reporter failure, these instances are distributed across multiple
+  independent subsets of Tally Reporters.
+
   Below we describe a data format for this.
 
 The document format
@@ -106,16 +110,17 @@ The document format
 
        The number of "instances" that the relay used (see above.)
 
-    "tally-reporter" SP Identifier SP Key
+    "tally-reporter" SP Identifier SP Key SP InstanceNumber
 
-       [At least twice]
+       [At least twice per instance]
 
        The curve25519 public key of each Tally Reporter that the relay
        believes in.  (If the list does not match the list of
        participating tally reporters, they won't be able to find the
        relay's values correctly.)  The identifiers are non-space,
        non-nul character sequences.  The Key values are encoded in
-       base64 with padding stripped.
+       base64 with padding stripped. The InstanceNumbers are decimal
+       integers from 0 to (num-instances - 1).
 
        [XXXX implement this; it isn't in nick's branch right now.]
 
@@ -134,7 +139,15 @@ The document format
        Tally Reporters MUST handle unrecognized keywords.  Keywords MAY
        appear in any order.
 
-       The semantics of individual measurements is not specified here.
+       It is safe to send the blinded totals for each instance to every
+       Tally Reporter. To unblind the totals, a Tally Reporter needs:
+         * a blinding document from each relay in the instance, and
+         * the per-counter blinding sums from the other Tally Reporters
+           in their instance.
+
+       TODO: But is it safer to create a per-instance counters document?
+
+       The semantics of individual measurements are not specified here.
 
     "signature" SP Signature
 
@@ -152,6 +165,16 @@ The document format
        [At start, exactly once.]
 
        All fields are as for "privctr-dump-format".
+
+    "instance-number" SP Number
+
+       [Exactly once]
+
+       The "instance" number that the relay used to generate this
+       blinding document. This MUST be equal to the instance number
+       for the "tally-reporter-pubkey" in the counters document.
+
+       TODO: this is redundant. Specify the constraint instead?
 
     "tally-reporter-pubkey" SP Key
 
@@ -189,30 +212,21 @@ The Blinding Values
 
   The "Data" field of the blinding documents above, when decrypted,
   yields a sequence of 64-bit binary values, encoded in network
-  (big-endian) order.  There are C * R such values, where C is the
-  number of keywords in the count document, and R is the number of
-  instances.  The client generates all of these values uniformly at
-  random.
+  (big-endian) order.  There are C such values, where C is the number
+  of keywords in the count document. The client generates all of
+  these values uniformly at random.
 
   For each keyword in the count document, in the order specified by the
-  count document, the decrypted data holds R*8 bytes for each instance
-  of that keyword's blinded counter.
+  count document, the decrypted data holds 8 bytes for the specified
+  instance of that keyword's blinded counter.
 
-  For example: if the count document has "num-instances 3" and lists
-  the keywords "b", "x", "g", and "a" (in that order), then the
+  For example: if the count document lists the keywords "b", "x", "g",
+  and "a" (in that order), and the specified instance is "2", then the
   decrypted data will hold the blinding values in this order:
-      b, instance 1
       b, instance 2
-      b, instance 3
-      x, instance 1
       x, instance 2
-      x, instance 3
-      g, instance 1
       g, instance 2
-      g, instance 3
-      a, instance 1
       a, instance 2
-      a, instance 3
 
 
 Implementation Notes
