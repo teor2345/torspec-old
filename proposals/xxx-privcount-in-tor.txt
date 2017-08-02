@@ -191,6 +191,16 @@ The document format
 
        TODO: this is redundant. Specify the constraint instead?
 
+    "num-counters" SP Number
+
+       [Exactly once]
+
+       The number of counters that the relay used in its counters
+       document. This MUST be equal to the number of keywords in the
+       counters document.
+
+       TODO: this is redundant. Specify the constraint instead?
+
     "tally-reporter-pubkey" SP Key
 
        [Exactly once]
