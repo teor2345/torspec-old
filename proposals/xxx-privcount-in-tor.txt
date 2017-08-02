@@ -179,7 +179,7 @@ The document format
 
        [At start, exactly once.]
 
-       All fields are as for "privctr-dump-format".
+       VERSION and SigningKey are as for "privctr-dump-format".
 
     "instance-number" SP Number
 
@@ -249,7 +249,7 @@ Implementation Notes
   A relay should, when starting a new round, generate all the blinding
   values and noise values in advance.  The relay should then use these
   values to compute Y_0 = SUM(B_i) + Z for each instance of each
-  counter.  Having done this, the relay can encrypt the blinding values
+  counter.  Having done this, the relay MUST encrypt the blinding values
   to the public key of each tally reporter, and wipe them from memory.
 
 
@@ -279,9 +279,6 @@ The hybrid encryption algorithm
      6. The hybrid-encrypted text is PK2 | MAC | C.
 
 
-
-
-
 An optimized alternative
 
    As an alternative, the sequences of blinding values is NOT transmitted
@@ -306,6 +303,6 @@ An optimized alternative
    blinding factors for each tally reporter. Further, the alternative
    does away with the need for blinding documents altogether.  It is,
    however, more sensitive to any defects in SHAKE256 than the design
-   above.
-
-
+   above. It also provides an identifier for the client, which is
+   desirable for Tor relays, but would be problematic if we extended
+   this scheme to clients or onion services.
