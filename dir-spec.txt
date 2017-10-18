@@ -2708,6 +2708,9 @@
           bandwith weights to 1 in our calculations, to avoid
           division-by-zero errors on unusual networks.
 
+        * If consensus method 27 or later is used, the microdesc consensus
+          may include an "a" line for each router, listing an IPv6 OR port.
+
      The signatures at the end of a consensus document are sorted in
      ascending order by identity digest.
 
@@ -2789,6 +2792,7 @@
      "24" -- No longer lists routers that are not Valid in the consensus.
      "25" -- Vote on recommended-protocols and required-protocols.
      "26" -- Initialize bandwidth weights to 1 to avoid division-by-zero.
+     "27" -- Adds support for "a" lines in microdescriptor consensues.
 
    Before generating a consensus, an authority must decide which consensus
    method to use.  To do this, it looks for the highest version number
@@ -3077,10 +3081,13 @@
 
     "a" SP address ":" port NL
 
-        [Zero times.]
+        [At most once]
 
-        IPv6 ORPorts are contained in microdescriptors and therefore omitted
-        in the microdescriptor consensus.
+        Identical to the "r" lines in section 3.4.1.
+
+        (Only included when the vote is generated with consensus-method 14
+        or later, and the consensus is generated with consensus-method 27 or
+        later.)
 
     "p" ... NL
 
