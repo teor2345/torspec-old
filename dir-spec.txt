@@ -1474,7 +1474,7 @@
         section 2.1.1.
 
         (Only included when generating microdescriptors for
-        consensus-method 14 or later.)
+        consensus-methods 14 to 27.)
 
      "family" names NL
 
@@ -2711,6 +2711,9 @@
         * If consensus method 27 or later is used, the microdesc consensus
           may include an "a" line for each router, listing an IPv6 OR port.
 
+        * If consensus method 28 or later is used, microdescriptors no longer
+          include "a" lines.
+
      The signatures at the end of a consensus document are sorted in
      ascending order by identity digest.
 
@@ -2793,6 +2796,7 @@
      "25" -- Vote on recommended-protocols and required-protocols.
      "26" -- Initialize bandwidth weights to 1 to avoid division-by-zero.
      "27" -- Adds support for "a" lines in microdescriptor consensues.
+     "28" -- Removes "a" lines from microdescriptors.
 
    Before generating a consensus, an authority must decide which consensus
    method to use.  To do this, it looks for the highest version number
