@@ -1,0 +1,103 @@
+Filename: xxx-ipv6-in-micro-consensus.txt
+Title: Move IPv6 ORPorts from microdescriptors to the microdesc consensus
+Author: Tim Wilson-Brown (teor)
+Created: 18-Oct-2017
+Status: Open
+Target: 0.3.3.x
+
+1. Summary
+
+   Since consensus method 14, authorities have voted for IPv6 address/port
+   pairs (ORPorts) in "a" lines. Reachable IPv6 ORPorts are placed in the (ns)
+   consensus, but all IPv6 ORPorts are placed in microdescriptors. This means
+   that clients that use microdescriptors can't tell if an IPv6 ORPort is
+   unreachable, unless authorities mark the router as not Running.
+
+   Instead, routers with reachable IPv6 ORPorts will have an "a" line with
+   this ORPort included in the microdesc consensus. The Running flag will be
+   based on router IPv4 address reachability, because only the IPv4 address is
+   mandatory.
+
+2. Proposal
+
+   We add two new consensus methods, here represented as M and N (M < N), to
+   be allocated when this proposal's implementation is merged.
+
+2.1. Add Reachable IPv6 ORPorts to the Microdesc Consensus
+
+   We specify that microdescriptor consensuses created with methods M or later
+   contain reachable IPv6 ORPorts.
+
+2.2. Remove IPv6 ORPorts from Microdescriptors
+
+   We specify that microdescriptors created with methods N or later do not
+   contain any IPv6 addresses.
+
+2.3. Assign Running based on IPv4 ORPorts
+
+   We specify that authorities assign the Running flag based only on the
+   reachability of each router's mandatory IPv4 ORPort, regardless of their
+   AuthDirHasIPv6Connectivity configuration. This change does not require a
+   new consensus method.
+
+2.4. Make Clients Ignore Irrelevant IPv6 ORPorts
+
+   If a client has a consensus made with method M or later, it should ignore
+   IPv6 ORPorts in microdescriptors.
+
+2.5. Retaining Existing Behaviour
+
+   The following existing behaviour will be retained:
+
+   Only authorities configured with AuthDirHasIPv6Connectivity 1 will test
+   IPv6 ORPort reachability, and vote for IPv6 addresses.
+
+   The (ns) consensus will continue to contain reachable IPv6 ORPorts.
+
+3. Impact
+
+3.1. Authorities
+
+   We expect that a majority of authorities will continue to set
+   AuthDirHasIPv6Connectivity 0, until after they have upgraded to a version
+   that only requires IPv4 ORPort reachability for the Running flag.
+
+3.2. Relays and Bridges
+
+   Tor relays and bridges do not currently use IPv6 addresses from the
+   consensus.
+
+   We expect that authorities will be using consensus method N before future
+   Tor relay or bridge versions use IPv6 addresses from the consensus.
+
+3.3. Clients
+
+3.3.1. Legacy Clients
+
+   Tor clients on versions 0.2.8.x to 0.3.2.x check directory documents for
+   ORPorts in the following order:
+     * descriptors (routerinfo, available if using bridges or full descriptors)
+     * consensus (routerstatus)
+     * microdescriptors (IPv6 ORPorts only)
+
+   Their behaviour will be identical to the current behaviour for consensus
+   methods M and earlier. When consensus method N is used, they will ignore
+   unreachable IPv6 ORPorts without any code changes.
+
+   Tor clients on versions 0.2.8.x and 0.2.9.x are currently unable to
+   bootstrap over IPv6 only connections when using microdescriptors. This
+   happens because the microdesc consensus does not contain IPv6 ORPorts.
+
+   When consensus method M is used, they will be able to bootstrap over IPv6
+   only connections using microdescriptors, without any code changes.
+
+3.3.2. Future Clients
+
+   Tor clients on versions 0.3.3.x and later will ignore unreachable IPv6
+   ORPorts once consensus method M or later is in use. This requires some
+   minor code changes.
+
+3.3.3. Clients that use Full Descriptors
+
+   Tor clients that use full descriptors already ignore unreachable IPv6
+   ORPorts, and have done so since at least 0.2.8.x.
