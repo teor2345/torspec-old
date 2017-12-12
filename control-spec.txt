@@ -2540,8 +2540,9 @@
        the controller should not interrupt the user to tell them so.}
 
      REACHABILITY_SUCCEEDED
-     "ORADDRESS=IP:port"
-     "DIRADDRESS=IP:port"
+     "ORADDRESS=IPv4:port"
+     "ORADDRESS=[IPv6]:port"
+     "DIRADDRESS=IPv4:port"
        We successfully verified the reachability of our external OR port or
        directory port (depending on which of ORADDRESS or DIRADDRESS is
        given.)
