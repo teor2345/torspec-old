@@ -149,6 +149,16 @@
        Version 1.0.0 represents the undocumented, legacy file format(s).
        Version 2.0.0 and later are documented by this specification.
 
+     "/*" WS "timestamp=" number WS "*/" WS* NL
+
+       [Exactly once.]
+
+       A positive integer that indicates when this fallback file was
+       generated. This timestamp is guaranteed to increase for every
+       version 2.0.0 and later fallback file.
+
+       The current timestamp format is YYYYMMDDHHMMSS, as an integer.
+
      "/*" WS key_value WS "*/" WS* NL
 
        [Zero or more times.]
