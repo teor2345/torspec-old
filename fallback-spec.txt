@@ -36,7 +36,8 @@
    The presence of whitespace may be significant, but the amount of
    whitespace is never signitivant. The type of whitespace is not
    significant to the C compiler or Tor parser. However, other parsers MAY
-   rely on the distinction between newlines and other kinds of whitespace.
+   rely on the distinction between newlines and spaces. (And that the
+   only whitespace characters in the file are newlines and spaces.)
 
    Structured C-style comments are used to provide additional data fields.
    This information is not used by Tor, but may be of interest to other
@@ -80,7 +81,7 @@
      Keyword
      ArgumentChar
      NL      (newline)
-     WS      (whitespace)
+     SP      (space)
      bool    (must not be confused with Onionoo's JSON "boolean")
 
    We derive the following nonterminals from Onionoo and dir-spec.txt:
@@ -114,7 +115,7 @@
                 numeric characters ([0-9]), with an optional decimal part
                 (".", followed by one or more numeric characters).
 
-     separator ::= "/*" WS "=====" WS "*/"
+     separator ::= "/*" SP+ "=====" SP+ "*/"
 
 2.2. File Header
 
@@ -123,7 +124,7 @@
 
 2.2.1 File Header Format
 
-     "/*" WS "type=fallback" WS "*/" WS* NL
+     "/*" SP+ "type=fallback" SP+ "*/" SP* NL
 
        [At start, exactly once.]
 
@@ -131,7 +132,7 @@
        error if this is not the first line of the file, or if the value is
        anything other than "fallback".
 
-     "/*" WS "version=" version_number WS "*/" WS* NL
+     "/*" SP+ "version=" version_number SP+ "*/" SP* NL
 
        [Exactly once, in second position in document.]
 
@@ -149,7 +150,7 @@
        Version 1.0.0 represents the undocumented, legacy file format(s).
        Version 2.0.0 and later are documented by this specification.
 
-     "/*" WS "timestamp=" number WS "*/" WS* NL
+     "/*" SP+ "timestamp=" number SP+ "*/" SP* NL
 
        [Exactly once.]
 
@@ -159,7 +160,7 @@
 
        The current timestamp format is YYYYMMDDHHMMSS, as an integer.
 
-     "/*" WS key_value WS "*/" WS* NL
+     "/*" SP+ key_value SP+ "*/" SP* NL
 
        [Zero or more times.]
 
@@ -167,7 +168,7 @@
        rely on the order of these additional fields. Additional header fields
        will be accompanied by a minor version increment.
 
-     separator WS* NL
+     separator SP* NL
 
        The file header ends with the section separator.
 
@@ -194,7 +195,7 @@
 
    The fallback summary MUST end with a section separator:
 
-     separator WS* NL
+     separator SP* NL
 
    There MUST NOT be any section separations in the fallback summary
    section, other than the terminating section separator.
@@ -214,8 +215,8 @@
      If a fallback entry does not conform to this format, the entry SHOULD
      be ignored by parsers.
 
-     DQUOTE dir_address WS "orport=" ipv4_or_port WS
-       "id=" fingerprint DQUOTE WS* NL
+     DQUOTE dir_address SP+ "orport=" ipv4_or_port SP+
+       "id=" fingerprint DQUOTE SP* NL
 
        [At start of C string, exactly once, on a single line.]
 
@@ -242,10 +243,10 @@
      Note:
 
        Each double-quoted C string line that occurs after the first line,
-       starts with whitespace inside the quotes. This is a requirement of
-       the Tor implementation.
+       starts with space inside the quotes. This is a requirement of the
+       Tor implementation.
 
-     DQUOTE WS "ipv6=" ipv6_or_address DQUOTE WS* NL
+     DQUOTE SP+ "ipv6=" ipv6_or_address DQUOTE SP* NL
 
        [Zero or more times.]
 
@@ -254,7 +255,7 @@
        non-zero. (For IPv6 addresses, this means that they are not equal to
        "[::]".)
 
-     DQUOTE WS "weight=" number DQUOTE WS* NL
+     DQUOTE SP+ "weight=" number DQUOTE SP* NL
 
        [Zero or more times.]
 
@@ -267,7 +268,7 @@
        may be of interest to libraries implementing Tor's fallaback
        behaviour.
 
-     DQUOTE WS key_value DQUOTE WS* NL
+     DQUOTE SP+ key_value DQUOTE SP* NL
 
        [Zero or more times.]
 
@@ -276,14 +277,14 @@
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
 
-     "/*" WS "nickname=" nickname WS "*/" WS* NL
+     "/*" SP+ "nickname=" nickname SP+ "*/" SP* NL
 
        [Zero or more times.]
 
        The nickname for this FallbackDir, as defined by Onionoo. The
        transitional 2.0.0 format has zero-length nicknames.
 
-     "/*" WS "extrainfo=" bool WS "*/" WS* NL
+     "/*" SP+ "extrainfo=" bool SP+ "*/" SP* NL
 
        [Zero or more times.]
 
@@ -293,7 +294,7 @@
        created. 0 indicates that it did not, or its descriptor was not
        available.
 
-     "/*" WS key_value WS "*/" WS* NL
+     "/*" SP+ key_value SP+ "*/" SP* NL
 
        [Zero or more times.]
 
@@ -302,11 +303,11 @@
        fields. Additional data fields will be accompanied by a minor version
        increment.
 
-     separator WS* NL
+     separator SP* NL
 
        Each fallback entry ends with the section separator.
 
-     "," WS* NL
+     "," SP* NL
 
        The comma terminates the C string constant. (Multiple C string
        constants separated by whitespace or comments are coalesced by
