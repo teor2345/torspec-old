@@ -277,12 +277,15 @@
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
 
-     "/*" SP+ "nickname=" nickname SP+ "*/" SP* NL
+     "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
 
        [Zero or more times.]
 
-       The nickname for this FallbackDir, as defined by Onionoo. The
-       transitional 2.0.0 format has zero-length nicknames.
+       The nickname for this FallbackDir, as defined by Onionoo. An
+       empty nickname indicates that the nickname is unknown.
+
+       The first fallback file that uses the version 2.0.0 format has
+       nickname lines, but they are all empty.
 
      "/*" SP+ "extrainfo=" bool SP+ "*/" SP* NL
 
@@ -293,6 +296,9 @@
        cached extra-info documents in its descriptor when the list was
        created. 0 indicates that it did not, or its descriptor was not
        available.
+
+       The first fallback file that uses the version 2.0.0 format has
+       extrainfo lines, but they are all zero.
 
      "/*" SP+ key_value SP+ "*/" SP* NL
 
@@ -355,11 +361,11 @@ A.1. Sample Data
 
    A sample version 2.0.0 file is available here:
 
-     https://trac.torproject.org/projects/tor/raw-attachment/ticket/22759/fallback_dirs_new_format_version.3.inc
+     https://trac.torproject.org/projects/tor/raw-attachment/ticket/22759/fallback_dirs_new_format_version.4.inc
 
    A sample transitional version 2.0.0 file is available here:
 
-     https://raw.githubusercontent.com/teor2345/tor/fallback-format-2-v2/src/or/fallback_dirs.inc
+     https://raw.githubusercontent.com/teor2345/tor/fallback-format-2-v4/src/or/fallback_dirs.inc
 
 A.1.1. Sample File Header
 
