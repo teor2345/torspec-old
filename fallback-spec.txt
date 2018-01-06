@@ -134,7 +134,7 @@
 
      "/*" SP+ "version=" version_number SP+ "*/" SP* NL
 
-       [Exactly once, in second position in document.]
+       [In second position, exactly once.]
 
        The version of the fallback file format. version_number uses
        semantic versioning: https://semver.org
@@ -218,7 +218,7 @@
      DQUOTE dir_address SP+ "orport=" ipv4_or_port SP+
        "id=" fingerprint DQUOTE SP* NL
 
-       [At start of C string, exactly once, on a single line.]
+       [At start, exactly once, on a single line.]
 
        This line consists of the following fields:
 
@@ -248,7 +248,7 @@
 
      DQUOTE SP+ "ipv6=" ipv6_or_address DQUOTE SP* NL
 
-       [Zero or more times.]
+       [Zero or one time.]
 
        The IPv6 address and ORPort for this FallbackDir, as defined by
        Onionoo. If present, IPv6 addresses and ORPorts are guaranteed to be
@@ -257,7 +257,7 @@
 
      DQUOTE SP+ "weight=" number DQUOTE SP* NL
 
-       [Zero or more times.]
+       [Zero or one time.]
 
        A non-negative, real-numbered weight for this FallbackDir.
        The default fallback weight is 1.0, and the default
@@ -279,7 +279,7 @@
 
      "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
 
-       [Zero or more times.]
+       [Exactly once.]
 
        The nickname for this FallbackDir, as defined by Onionoo. An
        empty nickname indicates that the nickname is unknown.
@@ -289,7 +289,7 @@
 
      "/*" SP+ "extrainfo=" bool SP+ "*/" SP* NL
 
-       [Zero or more times.]
+       [Exactly once.]
 
        An integer flag that indicates whether this fallback caches
        extra-info documents. Set to 1 if the fallback claimed that it
@@ -311,9 +311,13 @@
 
      separator SP* NL
 
+       [Exactly once.]
+
        Each fallback entry ends with the section separator.
 
      "," SP* NL
+
+       [Exactly once.]
 
        The comma terminates the C string constant. (Multiple C string
        constants separated by whitespace or comments are coalesced by
