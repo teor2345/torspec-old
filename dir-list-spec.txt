@@ -4,11 +4,20 @@
 1. Scope and Preliminaries
 
    This document describes the format of Tor's directory lists, which are
-   compiled and hard-coded into the tor binary. There is currently one
-   list: the fallback directory mirrors. This list is also parsed by other
-   libraries, like stem and metrics-lib. Alternate Tor implementations can
-   use this list to bootstrap from the latest public Tor directory
-   information.
+   compiled and hard-coded into the tor binary. There are currently two
+   lists: the directory authorities, and the fallback directory mirrors.
+   These lists are also parsed by other libraries, like stem and
+   metrics-lib. Alternate Tor implementations can use these lists to
+   bootstrap from the latest public Tor directory information.
+
+   Directory authorities were part of the original Tor design. The
+   version 3 directory protocol was introduced by proposal 101, and was
+   first supported by Tor in Tor version 0.2.0.3-alpha.
+
+   The hard-coded directory authority list is located in the tor source
+   repository at:
+
+       src/or/auth_dirs.inc
 
    The FallbackDir feature was introduced by proposal 210, and was first
    supported by Tor in Tor version 0.2.4.7-alpha. The first hard-coded
@@ -22,6 +31,10 @@
    This document describes version 2.0.0 and later of the directory list
    format.
 
+   In Tor versions 0.2.0.3-alpha through 0.3.2.8, the directory authority
+   list was hard-coded into src/or/config.c. As far as we are aware, nobody
+   attempted parse this file and extract the authorities.
+
    Legacy, semi-structured versions of the fallback list were released with
    Tor 0.2.8.1-alpha through Tor 0.3.1.9. We call this format version 1.
    Stem and Relay Search have parsers for this legacy format.
@@ -30,11 +43,13 @@
 
    A directory list is a C code fragment containing an array of C string
    constants. Each double-quoted C string constant is a valid torrc
-   FallbackDir entry. Each entry contains various data fields.
+   DirAuthority or FallbackDir entry. Each entry contains various data
+   fields.
 
    Directory lists do not include the C array's declaration, or the array's
    terminating NULL. Entries in directory lists do not include the
-   FallbackDir torrc option. These are handled by the including C code.
+   DirAuthority or FallbackDir torrc options. These are handled by the
+   including C code.
 
    Directlry lists also include C-style comments and whitespace. The
    presence of whitespace may be significant, but the amount of whitespace
@@ -83,19 +98,19 @@
    specification:
 
      dir_address
-     fingerprint
-     nickname
 
    See https://metrics.torproject.org/onionoo.html#details
 
    The following nonterminals are defined in the "Tor directory protocol"
    specification in dir-spec.txt:
 
+     nickname     (also defined by Onionoo)
+     fingerprint  (also defined by Onionoo)
      Keyword
      ArgumentChar
-     NL      (newline)
-     SP      (space)
-     bool    (must not be confused with Onionoo's JSON "boolean")
+     NL           (newline)
+     SP           (space)
+     bool         (must not be confused with Onionoo's JSON "boolean")
 
    We derive the following nonterminals from Onionoo and dir-spec.txt:
 
@@ -109,6 +124,9 @@
        The ipv6_or_address is an IPv6 address and port from the Onionoo
        or_addresses list. The address MAY be in the canonical RFC 5952
        IPv6 address format.
+
+     spaced_fingerprint ::= a fingerprint which may have SP* in between
+                            any of its characters
 
    A key-value pair:
 
@@ -130,6 +148,8 @@
 
      separator ::= "/*" SP+ "=====" SP+ "*/"
 
+     bridge_auth_flag ::= "bridge"
+
 2.2. List Header
 
    The list header consists of a number of key-value pairs, embedded in
@@ -143,7 +163,7 @@
 
        The type of directory entries in the list. Parsers SHOULD exit with
        an error if this is not the first line of the list, or if the value
-       is anything other than "fallback".
+       is anything other than "fallback" or "authority".
 
      "/*" SP+ "version=" version_number SP+ "*/" SP* NL
 
@@ -164,6 +184,9 @@
        format(s). Version 2.0.0 and later are documented by this
        specification.
 
+       TODO: if we modify the authority list manually, how do we make sure
+       that the version is updated? (See timestamp below for more details.)
+
      "/*" SP+ "timestamp=" number SP+ "*/" SP* NL
 
        [Exactly once.]
@@ -173,6 +196,12 @@
        version 2.0.0 and later directory list.
 
        The current timestamp format is YYYYMMDDHHMMSS, as an integer.
+
+       TODO: if we modify the authority list manually, how do we make
+       sure the timestamp has been updated? Do we need to run a check
+       script via make? (We could do this by checking that every commit
+       that changes the file, changes the timestamp.)
+       Alternately, we could rely on parsers to complain about this.
 
      "/*" SP+ key_value SP+ "*/" SP* NL
 
@@ -231,10 +260,18 @@
      If a directory entry does not conform to this format, the entry SHOULD
      be ignored by parsers.
 
+     Each double-quoted C string line starts or ends with a space. This is
+     a requirement of the Tor implementation.
+
      DQUOTE dir_address SP+ "orport=" ipv4_or_port SP+
        "id=" fingerprint DQUOTE SP* NL
 
-       [At start, exactly once, on a single line.]
+       [At start, exactly once, on a single line. Fallback entries only.]
+
+     DQUOTE nickname SP+ "orport=" ipv4_or_port SP+ bridge_auth_flag* SP+
+       DQUOTE SP* NL
+
+       [At start, exactly once, on a single line. Authority entries only.]
 
        This line consists of the following fields:
 
@@ -256,13 +293,24 @@
          All relay fingerprints are guaranteed to have one or more non-zero
          digits.
 
-     Note:
+       nickname
 
-       Each double-quoted C string line that occurs after the first line,
-       starts with space inside the quotes. This is a requirement of the
-       Tor implementation.
+         The nickname for this directory, as defined by tor-spec.txt.
 
-     DQUOTE SP+ "ipv6=" ipv6_or_address DQUOTE SP* NL
+       bridge_auth_flag
+
+         If this flag is present, the authority is a bridge authority.
+
+         Implementations MUST NOT assume there is only one bridge authority.
+
+     DQUOTE "v3ident=" fingerprint SP+ DQUOTE SP* NL
+
+       [Zero or one time. Authority entries only.]
+
+       The v3 directory authority identity key fingerprint for this
+       authority. Not present for bridge authorities.
+
+     DQUOTE SP* "ipv6=" ipv6_or_address SP* DQUOTE SP* NL
 
        [Zero or one time.]
 
@@ -292,6 +340,25 @@
        C string constants. Parsers MUST NOT rely on the order of these
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
+
+     DQUOTE dir_address SP+ spaced_fingerprint DQUOTE SP* NL
+
+       [At end of DQUOTE lines, exactly once, on a single line.
+        Authority entries only.]
+
+       This line consists of the following fields:
+
+       dir_address
+
+         An IPv4 address and DirPort for this directory, as defined by
+         Onionoo. In this format version, all IPv4 addresses and DirPorts
+         are guaranteed to be non-zero. (For IPv4 addresses, this means
+         that they are not equal to "0.0.0.0".)
+
+       spaced_fingerprint
+
+         The relay fingerprint of this directory. All relay fingerprints
+         are guaranteed to have one or more non-zero digits.
 
      "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
 
@@ -346,6 +413,11 @@
 
 3.1. Caching
 
+   The authority list typically changes once every 12 months or longer.
+   When authorities change their details, the list is updated. However,
+   there are deliberate differences between the hard-coded and consensus
+   details of some authorities.
+
    The fallback list typically changes once every 6-12 months. The data in
    the list represents the state of the fallback directory entries when the
    list was created. Fallbacks can and do change their details over time.
@@ -354,6 +426,10 @@
    during their build or release processes. Libraries MUST NOT retrieve the
    lists by default every time they are deployed or executed.
 
+   The latest authority list can be retrieved from:
+
+     https://gitweb.torproject.org/tor.git/plain/src/or/auth_dirs.inc
+
    The latest fallback list can be retrieved from:
 
      https://gitweb.torproject.org/tor.git/plain/src/or/fallback_dirs.inc
@@ -361,7 +437,7 @@
    Libraries MUST NOT rely on the availability of the server that hosts
    these lists.
 
-   The list can also be retrieved using:
+   Both lists can also be retrieved using:
 
      git clone https://git.torproject.org/tor.git
 
