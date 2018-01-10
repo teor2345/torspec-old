@@ -256,17 +256,22 @@
      Each double-quoted C string line starts or ends with a space. This is
      a requirement of the Tor implementation.
 
-     DQUOTE SP* ipv4_dir_address SP+ "orport=" ipv4_or_port SP+
-       "id=" fingerprint SP+ DQUOTE SP* NL
+     DQUOTE SP* ipv4_dir_address SP+ DQUOTE SP* NL
+     DQUOTE SP* "orport=" ipv4_or_port SP+ DQUOTE SP* NL
+     DQUOTE SP* "id=" fingerprint SP+ DQUOTE SP* NL
 
-       [At start, exactly once, on a single line. Fallback entries only.]
+       [At start, exactly once. Fallback entries only.]
 
-     DQUOTE SP* nickname SP+ "orport=" ipv4_or_port SP+ bridge_auth_flag* SP+
-       DQUOTE SP* NL
+     DQUOTE SP* nickname SP+ DQUOTE SP* NL
+     DQUOTE SP* "orport=" ipv4_or_port SP+ DQUOTE SP* NL
 
-       [At start, exactly once, on a single line. Authority entries only.]
+       [At start, exactly once. Authority entries only.]
 
-       This line consists of the following fields:
+     DQUOTE SP* bridge_auth_flag SP+ DQUOTE SP* NL
+
+       [Zero or one time. Authority entries only.]
+
+       These lines consist of the following fields:
 
        ipv4_dir_address
 
@@ -331,12 +336,12 @@
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
 
-     DQUOTE SP* ipv4_dir_address SP+ fingerprint SP* DQUOTE SP* NL
+     DQUOTE SP* ipv4_dir_address SP+ DQUOTE SP* NL
+     DQUOTE SP* fingerprint SP* DQUOTE SP* NL
 
-       [At end of DQUOTE lines, exactly once, on a single line.
-        Authority entries only.]
+       [At end of DQUOTE lines, exactly once. Authority entries only.]
 
-       This line consists of the following fields:
+       These lines consist of the following fields:
 
        ipv4_dir_address
 
