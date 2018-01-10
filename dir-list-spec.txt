@@ -51,7 +51,7 @@
    DirAuthority or FallbackDir torrc options. These are handled by the
    including C code.
 
-   Directlry lists also include C-style comments and whitespace. The
+   Directory lists also include C-style comments and whitespace. The
    presence of whitespace may be significant, but the amount of whitespace
    is never significant. The type of whitespace is not significant to the
    C compiler or Tor C string parser. However, other parsers MAY rely on
@@ -78,7 +78,7 @@
 
 1.3. Format Versions
 
-   1.0.0 - The legacy fallback directory list format
+   1.0.0 - The legacy fallback directory list format.
 
    2.0.0 - Adds name and extrainfo structured comments, and section separator
            comments to make the list easier to parse.
@@ -92,14 +92,11 @@
 
    Each section (or entry) ends with a separator.
 
+   Directory entries are sorted in fingerprint order.
+   This makes it easier to diff the entries across versions.
+   Parsers MUST NOT rely on the order of directory entries.
+
 2.1. Nonterminals
-
-   The following nonterminals are defined in the Onionoo details document
-   specification:
-
-     dir_address
-
-   See https://metrics.torproject.org/onionoo.html#details
 
    The following nonterminals are defined in the "Tor directory protocol"
    specification in dir-spec.txt:
@@ -114,16 +111,21 @@
 
    We derive the following nonterminals from Onionoo and dir-spec.txt:
 
-     ipv4_or_port ::= port from an IPv4 or_addresses item
+     ipv4_or_port ::= port
 
        The ipv4_or_port is the port part of an IPv4 address from the
-       Onionoo or_addresses list.
+       Onionoo or_addresses list, or a directory document.
 
-     ipv6_or_address ::= an IPv6 or_addresses item
+     ipv6_or_address ::= ipv6 ":" port
 
        The ipv6_or_address is an IPv6 address and port from the Onionoo
-       or_addresses list. The address MAY be in the canonical RFC 5952
-       IPv6 address format.
+       or_addresses list, or a directory document. The address MAY be in
+       the canonical RFC 5952 IPv6 address format.
+
+     ipv4_dir_address ::= ipv4 ":" port
+
+       The ipv4_dir_address is the IPv4 dir_address from Onionoo, or a
+       directory document.
 
      spaced_fingerprint ::= a fingerprint which may have SP* in between
                             any of its characters
@@ -184,9 +186,6 @@
        format(s). Version 2.0.0 and later are documented by this
        specification.
 
-       TODO: if we modify the authority list manually, how do we make sure
-       that the version is updated? (See timestamp below for more details.)
-
      "/*" SP+ "timestamp=" number SP+ "*/" SP* NL
 
        [Exactly once.]
@@ -196,12 +195,6 @@
        version 2.0.0 and later directory list.
 
        The current timestamp format is YYYYMMDDHHMMSS, as an integer.
-
-       TODO: if we modify the authority list manually, how do we make
-       sure the timestamp has been updated? Do we need to run a check
-       script via make? (We could do this by checking that every commit
-       that changes the file, changes the timestamp.)
-       Alternately, we could rely on parsers to complain about this.
 
      "/*" SP+ key_value SP+ "*/" SP* NL
 
@@ -263,7 +256,7 @@
      Each double-quoted C string line starts or ends with a space. This is
      a requirement of the Tor implementation.
 
-     DQUOTE dir_address SP+ "orport=" ipv4_or_port SP+
+     DQUOTE ipv4_dir_address SP+ "orport=" ipv4_or_port SP+
        "id=" fingerprint DQUOTE SP* NL
 
        [At start, exactly once, on a single line. Fallback entries only.]
@@ -275,27 +268,26 @@
 
        This line consists of the following fields:
 
-       dir_address
+       ipv4_dir_address
 
-         An IPv4 address and DirPort for this directory, as defined by
-         Onionoo. In this format version, all IPv4 addresses and DirPorts
-         are guaranteed to be non-zero. (For IPv4 addresses, this means
-         that they are not equal to "0.0.0.0".)
+         An IPv4 address and DirPort for this directory. In this format
+         version, all IPv4 addresses and DirPorts are guaranteed to be
+         non-zero. (For IPv4 addresses, this means that they are not equal
+         to "0.0.0.0".)
 
        ipv4_or_port
 
-         An IPv4 ORPort for this directory, derived from Onionoo. In this
-         format version, all IPv4 ORPorts are guaranteed to be non-zero.
+         An IPv4 ORPort for this directory. In this format version, all
+         IPv4 ORPorts are guaranteed to be non-zero.
 
        fingerprint
 
-         The relay fingerprint of this directory, as defined by Onionoo.
-         All relay fingerprints are guaranteed to have one or more non-zero
-         digits.
+         The relay fingerprint of this directory. All relay fingerprints
+         are guaranteed to have one or more non-zero digits.
 
        nickname
 
-         The nickname for this directory, as defined by tor-spec.txt.
+         The nickname for this directory.
 
        bridge_auth_flag
 
@@ -314,19 +306,17 @@
 
        [Zero or one time.]
 
-       The IPv6 address and ORPort for this directory, as defined by
-       Onionoo. If present, IPv6 addresses and ORPorts are guaranteed to be
-       non-zero. (For IPv6 addresses, this means that they are not equal to
-       "[::]".)
+       The IPv6 address and ORPort for this directory. If present, IPv6
+       addresses and ORPorts are guaranteed to be non-zero. (For IPv6
+       addresses, this means that they are not equal to "[::]".)
 
      DQUOTE SP+ "weight=" number DQUOTE SP* NL
 
        [Zero or one time.]
 
-       A non-negative, real-numbered weight for this directory.
-       The default fallback weight is 1.0, and the default
-       DirAuthorityFallbackRate is 1.0 in legacy Tor versions, and 0.1 in
-       recent Tor versions.
+       A non-negative, real-numbered weight for this directory. The default
+       fallback weight is 1.0, and the default DirAuthorityFallbackRate is
+       1.0 in legacy Tor versions, and 0.1 in recent Tor versions.
 
        weight was removed in version 2.0.0, but is documented because it
        may be of interest to libraries implementing Tor's fallaback
@@ -341,19 +331,19 @@
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
 
-     DQUOTE dir_address SP+ spaced_fingerprint DQUOTE SP* NL
+     DQUOTE ipv4_dir_address SP+ spaced_fingerprint DQUOTE SP* NL
 
        [At end of DQUOTE lines, exactly once, on a single line.
         Authority entries only.]
 
        This line consists of the following fields:
 
-       dir_address
+       ipv4_dir_address
 
-         An IPv4 address and DirPort for this directory, as defined by
-         Onionoo. In this format version, all IPv4 addresses and DirPorts
-         are guaranteed to be non-zero. (For IPv4 addresses, this means
-         that they are not equal to "0.0.0.0".)
+         An IPv4 address and DirPort for this directory. In this format
+         version, all IPv4 addresses and DirPorts are guaranteed to be
+         non-zero. (For IPv4 addresses, this means that they are not equal
+         to "0.0.0.0".)
 
        spaced_fingerprint
 
@@ -362,17 +352,17 @@
 
      "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
 
-       [Exactly once.]
+       [Zero or one time.]
 
-       The nickname for this directory, as defined by Onionoo. An
-       empty nickname indicates that the nickname is unknown.
+       The nickname for this directory. An empty nickname indicates that
+       the nickname is unknown.
 
        The first fallback list in the 2.0.0 format had nickname lines, but
        they were all empty.
 
      "/*" SP+ "extrainfo=" bool SP+ "*/" SP* NL
 
-       [Exactly once.]
+       [Zero or one time.]
 
        An integer flag that indicates whether this directory caches
        extra-info documents. Set to 1 if the directory claimed that it
