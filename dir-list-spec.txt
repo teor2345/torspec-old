@@ -58,14 +58,6 @@
    the distinction between newlines and spaces. (And that the only
    whitespace characters in the list are newlines and spaces.)
 
-   The directory entry C string constants are split over multiple lines for
-   readability. Structured C-style comments are used to provide additional
-   data fields. This information is not used by Tor, but may be of interest
-   to other libraries.
-
-   The order of directory entries and data fields is not significant,
-   except where noted below.
-
 1.2. Acknowledgements
 
    The original fallback directory script and format was created by
@@ -243,6 +235,17 @@
    DirAuthority or FallbackDir torrc option. The section also contains
    additional key-value fields in C-style comments.
 
+   The directory entry C string constants are split over multiple lines for
+   readability. Structured C-style comments are used to provide additional
+   data fields. This information is not used by Tor, but may be of interest
+   to other libraries.
+
+   The order of directory entries and data fields is not significant,
+   except where noted below. Parsers MAY ignore the order of fields, and
+   parse valid fields wherever they occur in the entry, except for
+   nickname and bridge_auth_flag, which must be parsed in the specified
+   order to avoid ambiguity.
+
    The list of fallback entries does not include the directory
    authorities: they are in a separate list. (The Tor implementation combines
    these lists after parsing them, and applies the DirAuthorityFallbackRate
@@ -253,52 +256,29 @@
      If a directory entry does not conform to this format, the entry SHOULD
      be ignored by parsers.
 
-     Each double-quoted C string line starts or ends with a space. This is
-     a requirement of the Tor implementation.
-
-     DQUOTE SP* ipv4_dir_address SP+ DQUOTE SP* NL
-     DQUOTE SP* "orport=" ipv4_or_port SP+ DQUOTE SP* NL
-     DQUOTE SP* "id=" fingerprint SP+ DQUOTE SP* NL
-
-       [At start, exactly once. Fallback entries only.]
+     Each field is on a separate line. Fields are separated by spaces inside
+     DQUOTEs. These spaces are a requirement of the Tor implementation.
 
      DQUOTE SP* nickname SP+ DQUOTE SP* NL
+
+       [At start of entry, exactly once. Authority entries only.]
+
+     "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
+
+       [At start of entry, exactly once. Fallback entries only.]
+
+       The nickname for this directory. An empty nickname indicates that
+       the nickname is unknown.
+
+       The first fallback list in the 2.0.0 format had nickname lines, but
+       they were all empty.
+
      DQUOTE SP* "orport=" ipv4_or_port SP+ DQUOTE SP* NL
 
-       [At start, exactly once. Authority entries only.]
+       [Exactly once.]
 
-     DQUOTE SP* bridge_auth_flag SP+ DQUOTE SP* NL
-
-       [Zero or one time. Authority entries only.]
-
-       These lines consist of the following fields:
-
-       ipv4_dir_address
-
-         An IPv4 address and DirPort for this directory. In this format
-         version, all IPv4 addresses and DirPorts are guaranteed to be
-         non-zero. (For IPv4 addresses, this means that they are not equal
-         to "0.0.0.0".)
-
-       ipv4_or_port
-
-         An IPv4 ORPort for this directory. In this format version, all
-         IPv4 ORPorts are guaranteed to be non-zero.
-
-       fingerprint
-
-         The relay fingerprint of this directory. All relay fingerprints
-         are guaranteed to have one or more non-zero digits.
-
-       nickname
-
-         The nickname for this directory.
-
-       bridge_auth_flag
-
-         If this flag is present, the authority is a bridge authority.
-
-         Implementations MUST NOT assume there is only one bridge authority.
+       An IPv4 ORPort for this directory. In this format version, all
+       IPv4 ORPorts are guaranteed to be non-zero.
 
      DQUOTE SP* "v3ident=" fingerprint SP+ DQUOTE SP* NL
 
@@ -306,6 +286,14 @@
 
        The v3 directory authority identity key fingerprint for this
        authority. Not present for bridge authorities.
+
+     DQUOTE SP* bridge_auth_flag SP+ DQUOTE SP* NL
+
+       [Zero or one time. Authority entries only.]
+
+       If this flag is present, the authority is a bridge authority.
+
+       Implementations MUST NOT assume there is only one bridge authority.
 
      DQUOTE SP* "ipv6=" ipv6_or_address SP+ DQUOTE SP* NL
 
@@ -319,13 +307,10 @@
 
        [Zero or one time.]
 
-       A non-negative, real-numbered weight for this directory. The default
-       fallback weight is 1.0, and the default DirAuthorityFallbackRate is
-       1.0 in legacy Tor versions, and 0.1 in recent Tor versions.
+       A non-negative, real-numbered weight for this directory. Defaults
+       to 1.0.
 
-       weight was removed in version 2.0.0, but is documented because it
-       may be of interest to libraries implementing Tor's fallaback
-       behaviour.
+       weight was removed in version 2.0.0.
 
      DQUOTE SP* key_value SP+ DQUOTE SP* NL
 
@@ -337,33 +322,23 @@
        minor version increment.
 
      DQUOTE SP* ipv4_dir_address SP+ DQUOTE SP* NL
-     DQUOTE SP* fingerprint SP* DQUOTE SP* NL
 
-       [At end of DQUOTE lines, exactly once. Authority entries only.]
+       [Before fingerprint, exactly once.]
 
-       These lines consist of the following fields:
+       An IPv4 address and DirPort for this directory. In this format
+       version, all IPv4 addresses and DirPorts are guaranteed to be
+       non-zero. (For IPv4 addresses, this means that they are not equal
+       to "0.0.0.0".)
 
-       ipv4_dir_address
+     DQUOTE SP* "id="* fingerprint SP+ DQUOTE SP* NL
 
-         An IPv4 address and DirPort for this directory. In this format
-         version, all IPv4 addresses and DirPorts are guaranteed to be
-         non-zero. (For IPv4 addresses, this means that they are not equal
-         to "0.0.0.0".)
+       [At end of DQUOTE lines, exactly once.]
 
-       fingerprint
+       The relay fingerprint of this directory. All relay fingerprints
+       are guaranteed to have one or more non-zero digits.
 
-         The relay fingerprint of this directory. All relay fingerprints
-         are guaranteed to have one or more non-zero digits.
-
-     "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
-
-       [Zero or one time.]
-
-       The nickname for this directory. An empty nickname indicates that
-       the nickname is unknown.
-
-       The first fallback list in the 2.0.0 format had nickname lines, but
-       they were all empty.
+       Fallback fingerprint lines start with "id=", but authority
+       fingerprint lines do not.
 
      "/*" SP+ "extrainfo=" bool SP+ "*/" SP* NL
 
