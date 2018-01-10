@@ -83,6 +83,9 @@
    2.0.0 - Adds name and extrainfo structured comments, and section separator
            comments to make the list easier to parse.
 
+   3.0.0 - Adds directory authorities. Makes the directory authority and
+           fallback directory formats more consistent.
+
 2. Format Details
 
    Directory lists contain the following sections:
@@ -126,9 +129,6 @@
 
        The ipv4_dir_address is the IPv4 dir_address from Onionoo, or a
        directory document.
-
-     spaced_fingerprint ::= a fingerprint which may have SP* in between
-                            any of its characters
 
    A key-value pair:
 
@@ -256,12 +256,12 @@
      Each double-quoted C string line starts or ends with a space. This is
      a requirement of the Tor implementation.
 
-     DQUOTE ipv4_dir_address SP+ "orport=" ipv4_or_port SP+
-       "id=" fingerprint DQUOTE SP* NL
+     DQUOTE SP* ipv4_dir_address SP+ "orport=" ipv4_or_port SP+
+       "id=" fingerprint SP+ DQUOTE SP* NL
 
        [At start, exactly once, on a single line. Fallback entries only.]
 
-     DQUOTE nickname SP+ "orport=" ipv4_or_port SP+ bridge_auth_flag* SP+
+     DQUOTE SP* nickname SP+ "orport=" ipv4_or_port SP+ bridge_auth_flag* SP+
        DQUOTE SP* NL
 
        [At start, exactly once, on a single line. Authority entries only.]
@@ -295,14 +295,14 @@
 
          Implementations MUST NOT assume there is only one bridge authority.
 
-     DQUOTE "v3ident=" fingerprint SP+ DQUOTE SP* NL
+     DQUOTE SP* "v3ident=" fingerprint SP+ DQUOTE SP* NL
 
        [Zero or one time. Authority entries only.]
 
        The v3 directory authority identity key fingerprint for this
        authority. Not present for bridge authorities.
 
-     DQUOTE SP* "ipv6=" ipv6_or_address SP* DQUOTE SP* NL
+     DQUOTE SP* "ipv6=" ipv6_or_address SP+ DQUOTE SP* NL
 
        [Zero or one time.]
 
@@ -310,7 +310,7 @@
        addresses and ORPorts are guaranteed to be non-zero. (For IPv6
        addresses, this means that they are not equal to "[::]".)
 
-     DQUOTE SP+ "weight=" number DQUOTE SP* NL
+     DQUOTE SP* "weight=" number SP+ DQUOTE SP* NL
 
        [Zero or one time.]
 
@@ -322,7 +322,7 @@
        may be of interest to libraries implementing Tor's fallaback
        behaviour.
 
-     DQUOTE SP+ key_value DQUOTE SP* NL
+     DQUOTE SP* key_value SP+ DQUOTE SP* NL
 
        [Zero or more times.]
 
@@ -331,7 +331,7 @@
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
 
-     DQUOTE ipv4_dir_address SP+ spaced_fingerprint DQUOTE SP* NL
+     DQUOTE SP* ipv4_dir_address SP+ fingerprint SP* DQUOTE SP* NL
 
        [At end of DQUOTE lines, exactly once, on a single line.
         Authority entries only.]
@@ -345,7 +345,7 @@
          non-zero. (For IPv4 addresses, this means that they are not equal
          to "0.0.0.0".)
 
-       spaced_fingerprint
+       fingerprint
 
          The relay fingerprint of this directory. All relay fingerprints
          are guaranteed to have one or more non-zero digits.
