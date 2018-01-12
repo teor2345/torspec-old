@@ -271,6 +271,9 @@
        The first fallback list in the 2.0.0 format had nickname lines, but
        they were all empty.
 
+       Authorities MUST have this field quoted, and fallbacks MUST have it
+       as a comment.
+
      DQUOTE "orport=" ipv4_or_port SP DQUOTE NL
 
        [Exactly once.]
@@ -280,26 +283,31 @@
 
      DQUOTE "v3ident=" fingerprint SP DQUOTE NL
 
-       [Zero or one time. Authority entries only.]
+       [Zero or one time. v3 Authority entries only.]
 
        The v3 directory authority identity key fingerprint for this
-       authority. Not present for bridge authorities.
+       authority. Bridge authorities MUST NOT have a v3ident.
 
      DQUOTE bridge_auth_flag SP DQUOTE NL
 
-       [Zero or one time. Authority entries only.]
+       [Zero or one time. Bridge Authority entries only.]
 
        If this flag is present, the authority is a bridge authority.
 
        Implementations MUST NOT assume there is only one bridge authority.
+       v3 authorities MUST NOT have this line.
 
      DQUOTE "ipv6=" ipv6_or_address SP DQUOTE NL
 
-       [Zero or one time.]
+       [Zero or one time. Supported by Tor 0.2.8 and later.]
 
        The IPv6 address and ORPort for this directory. If present, IPv6
        addresses and ORPorts are guaranteed to be non-zero. (For IPv6
        addresses, this means that they are not equal to "[::]".)
+
+       Support for ipv6 ORPorts was added in Tor 0.2.8.1-alpha.
+       They MUST NOT be included in authority lists generated for earlier
+       Tor versions.
 
      DQUOTE "weight=" number SP DQUOTE NL
 
@@ -328,15 +336,20 @@
        non-zero. (For IPv4 addresses, this means that they are not equal
        to "0.0.0.0".)
 
-     DQUOTE "id="* fingerprint SP DQUOTE NL
+     DQUOTE fingerprint DQUOTE NL
 
-       [At end of DQUOTE lines, exactly once.]
+       [At end of DQUOTE lines, exactly once. Authorities only.]
+
+     DQUOTE "id=" fingerprint DQUOTE NL
+
+       [At end of DQUOTE lines, exactly once. Fallbacks only.]
 
        The relay fingerprint of this directory. All relay fingerprints
        are guaranteed to have one or more non-zero digits.
 
-       Fallback fingerprint lines start with "id=", but authority
-       fingerprint lines do not.
+       Generated fallback fingerprint lines MUST start with "id=", but
+       authority fingerprint lines MUST NOT. This restriction is imposed
+       by the Tor parser, and may change in future versions.
 
      "/*" SP "extrainfo=" bool SP "*/" NL
 
@@ -446,6 +459,8 @@
    before trying an authority.
 
 A.1. Sample Data
+
+TODO: Update Sample Data for v3
 
    A sample version 2.0.0 fallback list is available here:
 
