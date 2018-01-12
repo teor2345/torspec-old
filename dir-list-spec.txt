@@ -43,7 +43,7 @@
 
    A directory list is a C code fragment containing an array of C string
    constants. Each double-quoted C string constant is a valid torrc
-   DirAuthority or FallbackDir entry. Each entry contains various data
+   DirAuthority or FallbackDir entry, containing a subset of the available
    fields.
 
    Directory lists do not include the C array's declaration, or the array's
@@ -51,12 +51,10 @@
    DirAuthority or FallbackDir torrc options. These are handled by the
    including C code.
 
-   Directory lists also include C-style comments and whitespace. The
-   presence of whitespace may be significant, but the amount of whitespace
-   is never significant. The type of whitespace is not significant to the
-   C compiler or Tor C string parser. However, other parsers MAY rely on
-   the distinction between newlines and spaces. (And that the only
-   whitespace characters in the list are newlines and spaces.)
+   Directory lists also include C-style comments and whitespace. Structured
+   comments are used to provide additional data to external parsers. The
+   amount and type of whitespace is specified by the format. C compilers
+   and the Tor parser may accept additional whitespace.
 
 1.2. Acknowledgements
 
@@ -140,7 +138,7 @@
                 numeric characters ([0-9]), with an optional decimal part
                 (".", followed by one or more numeric characters).
 
-     separator ::= "/*" SP+ "=====" SP+ "*/"
+     separator ::= "/*" SP "=====" SP "*/"
 
      bridge_auth_flag ::= "bridge"
 
@@ -151,7 +149,7 @@
 
 2.2.1 List Header Format
 
-     "/*" SP+ "type=" Keyword SP+ "*/" SP* NL
+     "/*" SP "type=" Keyword SP "*/" NL
 
        [At start, exactly once.]
 
@@ -159,7 +157,7 @@
        an error if this is not the first line of the list, or if the value
        is anything other than "fallback" or "authority".
 
-     "/*" SP+ "version=" version_number SP+ "*/" SP* NL
+     "/*" SP "version=" version_number SP "*/" NL
 
        [In second position, exactly once.]
 
@@ -178,7 +176,7 @@
        format(s). Version 2.0.0 and later are documented by this
        specification.
 
-     "/*" SP+ "timestamp=" number SP+ "*/" SP* NL
+     "/*" SP "timestamp=" number SP "*/" NL
 
        [Exactly once.]
 
@@ -188,7 +186,7 @@
 
        The current timestamp format is YYYYMMDDHHMMSS, as an integer.
 
-     "/*" SP+ key_value SP+ "*/" SP* NL
+     "/*" SP key_value SP "*/" NL
 
        [Zero or more times.]
 
@@ -196,7 +194,7 @@
        rely on the order of these additional fields. Additional header fields
        will be accompanied by a minor version increment.
 
-     separator SP* NL
+     separator NL
 
        The list header ends with the section separator.
 
@@ -223,7 +221,7 @@
 
    The list generation summary MUST end with a section separator:
 
-     separator SP* NL
+     separator NL
 
    There MUST NOT be any section separators in the list generation
    section, other than the terminating section separator.
@@ -259,11 +257,11 @@
      Each field is on a separate line. Fields are separated by spaces inside
      DQUOTEs. These spaces are a requirement of the Tor implementation.
 
-     DQUOTE SP* nickname SP+ DQUOTE SP* NL
+     DQUOTE nickname SP DQUOTE NL
 
        [At start of entry, exactly once. Authority entries only.]
 
-     "/*" SP+ "nickname=" nickname* SP+ "*/" SP* NL
+     "/*" SP "nickname=" nickname* SP "*/" NL
 
        [At start of entry, exactly once. Fallback entries only.]
 
@@ -273,21 +271,21 @@
        The first fallback list in the 2.0.0 format had nickname lines, but
        they were all empty.
 
-     DQUOTE SP* "orport=" ipv4_or_port SP+ DQUOTE SP* NL
+     DQUOTE "orport=" ipv4_or_port SP DQUOTE NL
 
        [Exactly once.]
 
        An IPv4 ORPort for this directory. In this format version, all
        IPv4 ORPorts are guaranteed to be non-zero.
 
-     DQUOTE SP* "v3ident=" fingerprint SP+ DQUOTE SP* NL
+     DQUOTE "v3ident=" fingerprint SP DQUOTE NL
 
        [Zero or one time. Authority entries only.]
 
        The v3 directory authority identity key fingerprint for this
        authority. Not present for bridge authorities.
 
-     DQUOTE SP* bridge_auth_flag SP+ DQUOTE SP* NL
+     DQUOTE bridge_auth_flag SP DQUOTE NL
 
        [Zero or one time. Authority entries only.]
 
@@ -295,7 +293,7 @@
 
        Implementations MUST NOT assume there is only one bridge authority.
 
-     DQUOTE SP* "ipv6=" ipv6_or_address SP+ DQUOTE SP* NL
+     DQUOTE "ipv6=" ipv6_or_address SP DQUOTE NL
 
        [Zero or one time.]
 
@@ -303,7 +301,7 @@
        addresses and ORPorts are guaranteed to be non-zero. (For IPv6
        addresses, this means that they are not equal to "[::]".)
 
-     DQUOTE SP* "weight=" number SP+ DQUOTE SP* NL
+     DQUOTE "weight=" number SP DQUOTE NL
 
        [Zero or one time.]
 
@@ -312,7 +310,7 @@
 
        weight was removed in version 2.0.0.
 
-     DQUOTE SP* key_value SP+ DQUOTE SP* NL
+     DQUOTE key_value SP DQUOTE NL
 
        [Zero or more times.]
 
@@ -321,7 +319,7 @@
        additional fields. Additional data fields will be accompanied by a
        minor version increment.
 
-     DQUOTE SP* ipv4_dir_address SP+ DQUOTE SP* NL
+     DQUOTE ipv4_dir_address SP DQUOTE NL
 
        [Before fingerprint, exactly once.]
 
@@ -330,7 +328,7 @@
        non-zero. (For IPv4 addresses, this means that they are not equal
        to "0.0.0.0".)
 
-     DQUOTE SP* "id="* fingerprint SP+ DQUOTE SP* NL
+     DQUOTE "id="* fingerprint SP DQUOTE NL
 
        [At end of DQUOTE lines, exactly once.]
 
@@ -340,7 +338,7 @@
        Fallback fingerprint lines start with "id=", but authority
        fingerprint lines do not.
 
-     "/*" SP+ "extrainfo=" bool SP+ "*/" SP* NL
+     "/*" SP "extrainfo=" bool SP "*/" NL
 
        [Zero or one time.]
 
@@ -353,7 +351,7 @@
        The first fallback list in the 2.0.0 format had extrainfo lines, but
        they were all zero.
 
-     "/*" SP+ key_value SP+ "*/" SP* NL
+     "/*" SP key_value SP "*/" NL
 
        [Zero or more times.]
 
@@ -362,13 +360,13 @@
        fields. Additional data fields will be accompanied by a minor version
        increment.
 
-     separator SP* NL
+     separator NL
 
        [Exactly once.]
 
        Each directory entry ends with the section separator.
 
-     "," SP* NL
+     "," NL
 
        [Exactly once.]
 
