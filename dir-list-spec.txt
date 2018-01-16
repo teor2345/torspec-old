@@ -33,7 +33,7 @@
 
    In Tor versions 0.2.0.3-alpha through 0.3.2.8, the directory authority
    list was hard-coded into src/or/config.c. As far as we are aware, nobody
-   attempted parse this file and extract the authorities.
+   attempted to parse this file and extract the authorities.
 
    Legacy, semi-structured versions of the fallback list were released with
    Tor 0.2.8.1-alpha through Tor 0.3.1.9. We call this format version 1.
